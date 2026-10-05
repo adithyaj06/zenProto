@@ -110,6 +110,8 @@ export default function MeditationPanel({ open, onClose }) {
 
   const phase = getBreathingPhase(elapsed)
   const progress = ((duration - remaining) / duration) * 100
+  const phaseScale = phase === 'Breathe in' ? 1.22 : phase === 'Hold' ? 1.22 : 0.82
+  const phaseTransition = phase === 'Hold' ? '3s ease-in-out' : '6s ease-in-out'
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -168,8 +170,13 @@ export default function MeditationPanel({ open, onClose }) {
                   bgcolor: 'action.hover',
                   border: 4,
                   borderColor: 'primary.light',
-                  transform: running && meditationType === 'breathing' && phase === 'Breathe in' ? 'scale(1.12)' : 'scale(1)',
-                  transition: 'transform 1.5 ease-in-out'
+                  transform: running && meditationType === 'breathing' ? `scale(${phaseScale})` : 'scale(1)',
+                  transition: running && meditationType === 'breathing' ? `transform ${phaseTransition}` : 'transform 0.5s ease-in-out',
+                  boxShadow: running && meditationType === 'breathing' && phase === 'Breathe in'
+                    ? '0 0 30px rgba(25, 118, 210, 0.25)'
+                    : running && meditationType === 'breathing' && phase === 'Breathe out'
+                      ? '0 0 18px rgba(25, 118, 210, 0.18)'
+                      : 'none'
                 }}
               >
                 <Stack alignItems="center" spacing={0.5}>
