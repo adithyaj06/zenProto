@@ -1,0 +1,65 @@
+{
+  "users": [
+    {
+      "id": "1788231952082",
+      "name": "Test User",
+      "email": "test@example.com",
+      "passwordHash": "$2a$10$wf4Ijs1Q687ZDs95t4ts2e8SW4.BxLOuGDXt.FKgks9O8yKPQMgti"
+    },
+    {
+      "id": "1788232080999",
+      "name": "adithya test",
+      "email": "adithyatest@gmail.com",
+      "passwordHash": "$2a$10$/jYAH9zd//goeQ44YHtaku3QrkT9uPwTJT7iLsnJov3PuJuGfC9RS"
+    },
+    {
+      "id": "1789435780133",
+      "name": "test",
+      "email": "test@gmail.com",
+      "passwordHash": "$2a$10$CSx8XJx8fFkYlZyWzYAEG.iSK2A3BLyIEc/nDlO1WjSXu2CzFX.gm"
+    }
+  ],
+  "entries": {
+    "1788231952082": [
+      {
+        "id": 1788231952253,
+        "title": "Test entry",
+        "content": "I am grateful for the calm start to my day.",
+        "mood": "Grateful",
+        "createdAt": "2026-09-01T03:05:52.253Z"
+      }
+    ],
+    "1788232080999": [
+      {
+        "id": 1788232106550,
+        "title": "Life",
+        "content": "Well, pretty beautiful today.",
+        "mood": "Calm",
+        "createdAt": "2026-09-01T03:08:26.550Z"
+      }
+    ],
+    "1789435780133": [
+      {
+        "id": 1789525846251,
+        "title": "",
+        "content": "sad",
+        "mood": "Sad",
+        "createdAt": "2026-09-16T02:30:46.251Z"
+      },
+      {
+        "id": 1789525378819,
+        "title": "horror movie morning",
+        "content": "fun day",
+        "mood": "Calm",
+        "createdAt": "2026-09-16T02:22:58.819Z"
+      },
+      {
+        "id": 1789438725611,
+        "title": "yayy",
+        "content": "yayy",
+        "mood": "Calm",
+        "createdAt": "2026-09-15T02:18:45.611Z"
+      }
+    ]
+  }
+}
