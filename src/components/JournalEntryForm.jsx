@@ -62,6 +62,8 @@ export default function JournalEntryForm({ onAdd }) {
   const [showPrompt, setShowPrompt] = useState(true)
   const [image, setImage] = useState(null)
   const [imageError, setImageError] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
   const recognitionRef = useRef(null)
   const voiceBaseContentRef = useRef('')
 
@@ -83,15 +85,24 @@ export default function JournalEntryForm({ onAdd }) {
     return () => clearInterval(interval)
   }, [])
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    if (!content.trim() && !title.trim()) return
-    onAdd({ title: title.trim(), content: content.trim(), mood, image, createdAt: new Date().toISOString() })
-    setTitle('')
-    setContent('')
-    setMood(moods[0])
-    setImage(null)
-    setImageError('')
+    if (isSaving || (!content.trim() && !title.trim())) return
+
+    setIsSaving(true)
+    setSubmitError('')
+    try {
+      await onAdd({ title: title.trim(), content: content.trim(), mood, image, createdAt: new Date().toISOString() })
+      setTitle('')
+      setContent('')
+      setMood(moods[0])
+      setImage(null)
+      setImageError('')
+    } catch (error) {
+      setSubmitError(error.message || 'Could not save your entry. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   function handleImageChange(event) {
@@ -226,6 +237,7 @@ export default function JournalEntryForm({ onAdd }) {
           </Box>
         )}
         {imageError && <Typography color="error" variant="body2">{imageError}</Typography>}
+        {submitError && <Typography color="error" variant="body2" role="alert">{submitError}</Typography>}
 
         <Stack spacing={1}>
           <Typography variant="body2" color="text.secondary">Mood</Typography>
@@ -250,7 +262,9 @@ export default function JournalEntryForm({ onAdd }) {
             ))}
           </ToggleButtonGroup>
         </Stack>
-        <Button type="submit" variant="contained">Save</Button>
+        <Button type="submit" variant="contained" disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Save'}
+        </Button>
       </Stack>
     </Paper>
   )

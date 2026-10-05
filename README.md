@@ -1,6 +1,6 @@
 # ZenProto — Mindful Journaling
 
-A full-stack journaling app with a React + Material UI frontend and a Node.js + Express backend.
+A mindful journaling app with a React + Material UI frontend. Journal entries are stored in browser local storage, so they remain on the current browser and are not synced across devices. The Express API can still be run locally, but the deployed frontend does not depend on it.
 
 Quick start
 
@@ -8,19 +8,15 @@ Quick start
 # install
 npm install
 
-# run frontend dev server (terminal 1)
+# run the frontend and API together
 npm run dev
-
-# run backend API server (terminal 2)
-npm run start:server
 ```
 
 Features
 
 - User signup and login with JWT authentication
-- Per-user synced journal entries
-- Add, list, and delete entries from the backend
-- Persistent storage in `server/data.json`
+- Add, list, and delete browser-local journal entries
+- Theme and font preferences saved in the browser
 
 Authentication flow
 

@@ -1,3 +1,25 @@
+export const JOURNAL_ENTRIES_KEY = 'zenproto_entries'
+
+export function loadJournalEntries() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(JOURNAL_ENTRIES_KEY) || '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    return []
+  }
+}
+
+export function saveJournalEntries(entries) {
+  try {
+    localStorage.setItem(JOURNAL_ENTRIES_KEY, JSON.stringify(entries))
+  } catch (error) {
+    const message = error?.name === 'QuotaExceededError'
+      ? 'Browser storage is full. Remove an image or delete old entries, then try again.'
+      : 'Browser storage is unavailable. Check your browser privacy settings and try again.'
+    throw new Error(message)
+  }
+}
+
 export function getTimeGreeting() {
   const hour = new Date().getHours()
   if (hour < 12) return 'Good morning'
@@ -38,24 +60,3 @@ export function getJournalStreak(entries) {
   return streak
 }
 
-export async function readApiResponse(res) {
-  const responseText = await res.text()
-  let data = {}
-
-  if (responseText) {
-    try {
-      data = JSON.parse(responseText)
-    } catch (e) {
-      throw new Error(`API returned an invalid response (${res.status})`)
-    }
-  }
-
-  if (!res.ok) {
-    if (res.status === 500) {
-      throw new Error('Could not reach the API server. Run npm run start:server in a second terminal.')
-    }
-    throw new Error(data.error || `Request failed (${res.status})`)
-  }
-
-  return data
-}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { ThemeProvider } from '@mui/material/styles'
 import { CssBaseline, Container, AppBar, Toolbar, Typography, Box, Button, IconButton, Menu, MenuItem, Tooltip, ListSubheader, Divider } from '@mui/material'
 import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded'
@@ -11,12 +11,11 @@ import MentalHealthFact from './components/MentalHealthFact'
 import EntriesPanel from './components/EntriesPanel'
 import MeditationPanel from './components/MeditationPanel'
 import { TOKEN_KEY, THEME_MODE_KEY, THEME_FONT_KEY, themeOptions, fontOptions, getInitialTheme, createAppTheme } from './lib/theme'
-import { getTimeGreeting, getJournalStreak, readApiResponse } from './lib/journal'
+import { getTimeGreeting, getJournalStreak, loadJournalEntries, saveJournalEntries } from './lib/journal'
 
 export default function App() {
   const [user, setUser] = useState({ id: 'guest', name: 'Guest', email: 'guest@zenproto.local' })
-  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || '')
-  const [entries, setEntries] = useState([])
+  const [entries, setEntries] = useState(loadJournalEntries)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedMood, setSelectedMood] = useState('All')
   const [insightsOpen, setInsightsOpen] = useState(false)
@@ -44,65 +43,27 @@ export default function App() {
     setThemeMenuAnchor(null)
   }
 
-  useEffect(() => {
-    loadEntries(token)
-  }, [token])
-
-  async function loadEntries(currentToken) {
-    try {
-      const headers = {}
-      if (currentToken) {
-        headers.Authorization = `Bearer ${currentToken}`
-      }
-
-      const res = await fetch('/api/entries', {
-        headers
-      })
-      if (!res.ok) throw new Error('Failed to load entries')
-      const data = await readApiResponse(res)
-      setEntries(data)
-    } catch (e) {
-      console.error('Failed to load entries', e)
-    }
-  }
-
   function logout() {
     localStorage.removeItem(TOKEN_KEY)
-    setToken('')
-    setUser({ id: 'guest', name: 'Guest', email: 'guest@zenproto.local' })
-    setEntries([])
+    setUser({ id: 'guest', name: 'You', email: 'guest@zenproto.local' })
+    setEntries(loadJournalEntries())
   }
 
-  async function addEntry(entry) {
-    try {
-      const res = await fetch('/api/entries', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(entry)
-      })
-      const created = await res.json()
-      if (!res.ok) throw new Error(created.error || 'Could not save entry')
-      setEntries(prev => [created, ...prev])
-    } catch (e) {
-      console.error('Failed to save entry', e)
+  function addEntry(entry) {
+    const created = {
+      ...entry,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      createdAt: entry.createdAt || new Date().toISOString()
     }
+    const nextEntries = [created, ...entries]
+    saveJournalEntries(nextEntries)
+    setEntries(nextEntries)
   }
 
-  async function removeEntry(id) {
-    try {
-      const res = await fetch(`/api/entries/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const payload = await res.json()
-      if (!res.ok) throw new Error(payload.error || 'Could not delete entry')
-      setEntries(prev => prev.filter(e => e.id !== id))
-    } catch (e) {
-      console.error('Failed to delete entry', e)
-    }
+  function removeEntry(id) {
+    const nextEntries = entries.filter(entry => entry.id !== id)
+    saveJournalEntries(nextEntries)
+    setEntries(nextEntries)
   }
 
   const filteredEntries = entries.filter(entry => {
