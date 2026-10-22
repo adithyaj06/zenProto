@@ -20,6 +20,25 @@ export function saveJournalEntries(entries) {
   }
 }
 
+export async function readApiResponse(response) {
+  const responseText = await response.text()
+  let data = {}
+
+  if (responseText) {
+    try {
+      data = JSON.parse(responseText)
+    } catch (error) {
+      throw new Error(`API returned an invalid response (${response.status})`)
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed (${response.status})`)
+  }
+
+  return data
+}
+
 export function getTimeGreeting() {
   const hour = new Date().getHours()
   if (hour < 12) return 'Good morning'

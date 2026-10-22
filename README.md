@@ -1,6 +1,6 @@
 # ZenProto — Mindful Journaling
 
-A mindful journaling app with a React + Material UI frontend. Journal entries are stored in browser local storage, so they remain on the current browser and are not synced across devices. The Express API can still be run locally, but the deployed frontend does not depend on it.
+A mindful journaling app with a React + Material UI frontend and a separate Express API in `backend/`. The Vite development server proxies `/api` requests to Express on port `4001`.
 
 Quick start
 
@@ -12,10 +12,14 @@ npm install
 npm run dev
 ```
 
+For a deployed frontend, set `VITE_API_URL` to the origin of the separately hosted Express API, for example `https://api.example.com`. The API must allow requests from the frontend's origin. The frontend defaults to relative `/api` URLs when this variable is unset, which is intended for local Vite development.
+
+The API currently stores data in `server/data.json` to preserve the existing local journal data. This JSON-file storage is suitable for local development only; use a persistent database and configure `JWT_SECRET` when deploying the API.
+
 Features
 
 - User signup and login with JWT authentication
-- Add, list, and delete browser-local journal entries
+- Add, list, and delete journal entries through the Express API
 - Theme and font preferences saved in the browser
 
 Authentication flow
@@ -28,4 +32,4 @@ Next steps
 
 - Add entry editing and search
 - Add refresh tokens and password reset
-- Add real database and cloud sync
+- Replace local JSON storage with a persistent database
