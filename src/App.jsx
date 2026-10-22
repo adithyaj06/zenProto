@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { ThemeProvider } from '@mui/material/styles'
 import { CssBaseline, Container, AppBar, Toolbar, Typography, Box, Button, IconButton, Menu, MenuItem, Tooltip, ListSubheader, Divider } from '@mui/material'
 import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded'
@@ -11,14 +11,11 @@ import MentalHealthFact from './components/MentalHealthFact'
 import EntriesPanel from './components/EntriesPanel'
 import MeditationPanel from './components/MeditationPanel'
 import { TOKEN_KEY, THEME_MODE_KEY, THEME_FONT_KEY, themeOptions, fontOptions, getInitialTheme, createAppTheme } from './lib/theme'
-import { getTimeGreeting, getJournalStreak, readApiResponse } from './lib/journal'
-
-const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+import { getTimeGreeting, getJournalStreak, loadJournalEntries, saveJournalEntries } from './lib/journal'
 
 export default function App() {
   const [user, setUser] = useState({ id: 'guest', name: 'Guest', email: 'guest@zenproto.local' })
-  const [entries, setEntries] = useState([])
-  const [entriesError, setEntriesError] = useState('')
+  const [entries, setEntries] = useState(loadJournalEntries)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedMood, setSelectedMood] = useState('All')
   const [insightsOpen, setInsightsOpen] = useState(false)
@@ -33,30 +30,6 @@ export default function App() {
   const displayDate = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long' })
   const theme = createAppTheme(themeKey, fontKey)
   const journalStreak = getJournalStreak(entries)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadEntries() {
-      try {
-        const token = localStorage.getItem(TOKEN_KEY)
-        const headers = token ? { Authorization: `Bearer ${token}` } : {}
-        const response = await fetch(`${API_BASE_URL}/api/entries`, { headers })
-        const data = await readApiResponse(response)
-        if (!cancelled) {
-          setEntries(data)
-          setEntriesError('')
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setEntriesError(error.message || 'Could not load journal entries.')
-        }
-      }
-    }
-
-    loadEntries()
-    return () => { cancelled = true }
-  }, [])
 
   function selectTheme(nextThemeKey) {
     setThemeKey(nextThemeKey)
@@ -75,39 +48,21 @@ export default function App() {
     setUser({ id: 'guest', name: 'You', email: 'guest@zenproto.local' })
   }
 
-  async function addEntry(entry) {
-    const token = localStorage.getItem(TOKEN_KEY)
-    const headers = { 'Content-Type': 'application/json' }
-    if (token) headers.Authorization = `Bearer ${token}`
-
-    let response
-    try {
-      response = await fetch(`${API_BASE_URL}/api/entries`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(entry)
-      })
-    } catch (error) {
-      throw new Error('Could not reach the API server. Check the backend connection and try again.')
+  function addEntry(entry) {
+    const created = {
+      ...entry,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      createdAt: entry.createdAt || new Date().toISOString()
     }
-
-    const created = await readApiResponse(response)
-    setEntries(previous => [created, ...previous])
-    setEntriesError('')
+    const nextEntries = [created, ...entries]
+    saveJournalEntries(nextEntries)
+    setEntries(nextEntries)
   }
 
-  async function removeEntry(id) {
-    const token = localStorage.getItem(TOKEN_KEY)
-    const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    let response
-    try {
-      response = await fetch(`${API_BASE_URL}/api/entries/${id}`, { method: 'DELETE', headers })
-    } catch (error) {
-      throw new Error('Could not reach the API server. Check the backend connection and try again.')
-    }
-
-    await readApiResponse(response)
-    setEntries(previous => previous.filter(entry => entry.id !== id))
+  function removeEntry(id) {
+    const nextEntries = entries.filter(entry => entry.id !== id)
+    saveJournalEntries(nextEntries)
+    setEntries(nextEntries)
   }
 
   const filteredEntries = entries.filter(entry => {
@@ -211,7 +166,7 @@ export default function App() {
         onMoodChange={setSelectedMood}
         onDelete={removeEntry}
         totalResults={filteredEntries.length}
-        emptyMessage={entriesError || (entries.length === 0 ? 'No entries yet — start by writing a short reflection.' : 'No entries match your current search or mood filter.')}
+        emptyMessage={entries.length === 0 ? 'No entries yet — start by writing a short reflection.' : 'No entries match your current search or mood filter.'}
       />
     </ThemeProvider>
   )

@@ -28,6 +28,10 @@ export async function readApiResponse(response) {
     try {
       data = JSON.parse(responseText)
     } catch (error) {
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('text/html') || /^\s*<!doctype html|^\s*<html/i.test(responseText)) {
+        throw new Error(`The API returned an HTML page (${response.status}) instead of JSON. Configure VITE_API_URL to your hosted Express API origin and redeploy the frontend.`)
+      }
       throw new Error(`API returned an invalid response (${response.status})`)
     }
   }
